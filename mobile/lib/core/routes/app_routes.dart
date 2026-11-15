@@ -28,4 +28,7 @@ abstract class AppRoutes {
 
   static const String classForm = 'class-form';
   static const String classFormPath = '/classes/form';
+
+  static const String invitations = 'invitations';
+  static const String invitationsPath = '/invitations';
 }

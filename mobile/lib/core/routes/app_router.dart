@@ -6,6 +6,7 @@ import '../../screens/campaigns/campaign_form_screen.dart';
 import '../../screens/characters/character_form_screen.dart';
 import '../../screens/classes/class_form_screen.dart';
 import '../../screens/home/home_screen.dart';
+import '../../screens/invitations/invitations_screen.dart';
 import 'app_routes.dart';
 
 abstract class AppRouter {
@@ -50,6 +51,11 @@ abstract class AppRouter {
         name: AppRoutes.classForm,
         path: AppRoutes.classFormPath,
         builder: (context, state) => const ClassFormScreen(),
+      ),
+      GoRoute(
+        name: AppRoutes.invitations,
+        path: AppRoutes.invitationsPath,
+        builder: (context, state) => const InvitationsScreen(),
       ),
     ],
   );
