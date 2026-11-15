@@ -1,8 +1,48 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\CharacterController;
+use App\Http\Controllers\RPGClassController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+/*
+|--------------------------------------------------------------------------
+| Rotas Públicas (Autenticação)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Rotas Protegidas por Autenticação Sanctum
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->group(function () {
+    // Auth & Perfil
+    Route::prefix('auth')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/me', [AuthController::class, 'me']);
+    });
+
+    // 1. Classes do RPG (CRUD completo)
+    Route::apiResource('classes', RPGClassController::class);
+    Route::post('/classes/{id}/abilities', [RPGClassController::class, 'addAbility']);
+    Route::delete('/classes/{classId}/abilities/{abilityId}', [RPGClassController::class, 'removeAbility']);
+
+    // 2. Personagens (CRUD completo)
+    Route::apiResource('characters', CharacterController::class);
+
+    // 3. Campanhas (CRUD completo + visão mestre/jogador)
+    Route::get('/campaigns/participating', [CampaignController::class, 'indexPlayer']);
+    Route::apiResource('campaigns', CampaignController::class);
+
+    // Vínculos da Campanha (gerenciados pelo mestre)
+    Route::post('/campaigns/{id}/characters', [CampaignController::class, 'addCharacter']);
+    Route::delete('/campaigns/{id}/characters/{characterId}', [CampaignController::class, 'removeCharacter']);
+    Route::post('/campaigns/{id}/classes', [CampaignController::class, 'addClass']);
+    Route::delete('/campaigns/{id}/classes/{classId}', [CampaignController::class, 'removeClass']);
+});
