@@ -53,4 +53,16 @@ abstract class AppTextStyles {
     color: AppColors.textPrimary,
     letterSpacing: 0.5,
   );
+
+  static const TextStyle labelMedium = TextStyle(
+    fontSize: 14.0,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+
+  static const TextStyle labelSmall = TextStyle(
+    fontSize: 11.0,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textMuted,
+  );
 }

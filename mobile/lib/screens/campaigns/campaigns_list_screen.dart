@@ -235,8 +235,7 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
                                   SizedBox(
                                     height: MediaQuery.of(context).size.height * 0.6,
                                     child: const EmptyStateView(
-                                      message:
-                                          'Você ainda não foi convidado para nenhuma campanha como jogador.',
+                                      message: AppConstants.emptyPlayerCampaignsText,
                                       icon: Icons.group_off_outlined,
                                     ),
                                   ),

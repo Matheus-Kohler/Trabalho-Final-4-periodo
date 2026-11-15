@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -86,8 +87,18 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Convites de Campanha'),
+        actions: [
+          IconButton(
+            tooltip: 'Atualizar convites',
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadInvitations,
+          ),
+        ],
       ),
-      body: _buildContent(),
+      body: RefreshIndicator(
+        onRefresh: _loadInvitations,
+        child: _buildContent(),
+      ),
     );
   }
 
@@ -104,13 +115,22 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     }
 
     if (_invitations.isEmpty) {
-      return const EmptyStateView(
-        message: 'Você não tem nenhum convite pendente.',
-        icon: Icons.mark_email_read_outlined,
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: const EmptyStateView(
+              message: AppConstants.emptyInvitationsText,
+              icon: Icons.mark_email_read_outlined,
+            ),
+          ),
+        ],
       );
     }
 
     return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppSpacing.md),
       itemCount: _invitations.length,
       itemBuilder: (context, index) {
@@ -161,7 +181,10 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
                 children: [
                   OutlinedButton.icon(
                     icon: const Icon(Icons.close, size: 16, color: AppColors.error),
-                    label: const Text('Recusar', style: TextStyle(color: AppColors.error)),
+                    label: Text(
+                      'Recusar',
+                      style: AppTextStyles.labelMedium.copyWith(color: AppColors.error),
+                    ),
                     onPressed: () => _respond(inv.id, false),
                   ),
                   const SizedBox(width: AppSpacing.sm),

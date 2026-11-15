@@ -112,7 +112,9 @@ class _ClassFormScreenState extends State<ClassFormScreen> {
                     ),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: AppColors.error),
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.error,
+                      ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),

@@ -72,9 +72,9 @@ class _CharactersListScreenState extends State<CharactersListScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
+            child: Text(
               'Excluir',
-              style: TextStyle(color: AppColors.error),
+              style: AppTextStyles.labelMedium.copyWith(color: AppColors.error),
             ),
           ),
         ],

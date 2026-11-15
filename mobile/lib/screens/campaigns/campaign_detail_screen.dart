@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -206,31 +207,32 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   if (isSearching)
                     const Padding(
                       padding: EdgeInsets.all(AppSpacing.md),
-                      child: CircularProgressIndicator(),
+                      child: Center(child: LoadingIndicator()),
                     )
                   else if (searchError != null)
                     Padding(
                       padding: const EdgeInsets.all(AppSpacing.md),
                       child: Text(
                         searchError!,
-                        style: const TextStyle(color: AppColors.error),
+                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
                       ),
                     )
                   else if (!hasSearched)
-                    const Padding(
-                      padding: EdgeInsets.all(AppSpacing.md),
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       child: Text(
                         'Digite o e-mail cadastrado do jogador para localizar os personagens disponíveis para convite.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textSecondary),
+                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
                       ),
                     )
                   else if (availableCharacters.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(AppSpacing.md),
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       child: Text(
                         'Nenhum personagem disponível encontrado para este e-mail (ou o personagem já está na campanha/convidado).',
                         textAlign: TextAlign.center,
+                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
                       ),
                     )
                   else
@@ -482,7 +484,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             const SizedBox(height: AppSpacing.sm),
             if (campaign.characters.isEmpty)
               const EmptyStateView(
-                message: 'Nenhum personagem vinculado a esta mesa.',
+                message: AppConstants.emptyCampaignCharactersText,
                 icon: Icons.person_off_outlined,
               )
             else
@@ -540,8 +542,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             const SizedBox(height: AppSpacing.sm),
             if (campaign.classes.isEmpty)
               const EmptyStateView(
-                message:
-                    'Nenhuma classe foi disponibilizada pelo mestre ainda.',
+                message: AppConstants.emptyCampaignClassesText,
                 icon: Icons.lock_outline,
               )
             else

@@ -158,7 +158,9 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
                     ),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: AppColors.error),
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.error,
+                      ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -248,6 +250,8 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
                         controller: _strengthController,
                         label: 'Força (FOR)',
                         keyboardType: TextInputType.number,
+                        validator: (v) =>
+                            AppValidators.integerNumber(v, 'Força'),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -256,6 +260,8 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
                         controller: _dexterityController,
                         label: 'Destreza (DES)',
                         keyboardType: TextInputType.number,
+                        validator: (v) =>
+                            AppValidators.integerNumber(v, 'Destreza'),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -264,6 +270,8 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
                         controller: _constitutionController,
                         label: 'Constituição (CON)',
                         keyboardType: TextInputType.number,
+                        validator: (v) =>
+                            AppValidators.integerNumber(v, 'Constituição'),
                       ),
                     ),
                   ],
@@ -276,6 +284,8 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
                         controller: _intelligenceController,
                         label: 'Inteligência (INT)',
                         keyboardType: TextInputType.number,
+                        validator: (v) =>
+                            AppValidators.integerNumber(v, 'Inteligência'),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -284,6 +294,8 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
                         controller: _wisdomController,
                         label: 'Sabedoria (SAB)',
                         keyboardType: TextInputType.number,
+                        validator: (v) =>
+                            AppValidators.integerNumber(v, 'Sabedoria'),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -292,6 +304,8 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
                         controller: _charismaController,
                         label: 'Carisma (CAR)',
                         keyboardType: TextInputType.number,
+                        validator: (v) =>
+                            AppValidators.integerNumber(v, 'Carisma'),
                       ),
                     ),
                   ],

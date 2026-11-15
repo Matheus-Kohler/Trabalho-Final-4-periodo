@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_text_styles.dart';
 import '../../models/campaign_invitation_model.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
@@ -75,14 +77,14 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Text(
               '$masterName convidou seu personagem $charName para participar da campanha:',
-              style: const TextStyle(fontSize: 14),
+              style: AppTextStyles.bodyMedium,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.sm),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: AppColors.surface,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                 border: Border.all(color: AppColors.primary),
               ),
               child: Column(
@@ -90,29 +92,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     campaignName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                    style: AppTextStyles.titleMedium.copyWith(
                       color: AppColors.secondary,
                     ),
                   ),
                   if (inv.campaign?.description != null) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       inv.campaign!.description!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
+                      style: AppTextStyles.bodySmall,
                     ),
                   ],
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            const SizedBox(height: AppSpacing.md),
+            Text(
               'Você deve decidir se aceita entrar na aventura agora para prosseguir:',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -135,7 +132,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               }
             },
-            child: const Text('Recusar', style: TextStyle(color: AppColors.error)),
+            child: Text(
+              'Recusar',
+              style: AppTextStyles.labelMedium.copyWith(color: AppColors.error),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -198,9 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Center(
                 child: Text(
                   _currentUser!.name,
-                  style: const TextStyle(
+                  style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.secondary,
-                    fontSize: 13,
                   ),
                 ),
               ),

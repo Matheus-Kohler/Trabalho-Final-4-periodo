@@ -30,7 +30,15 @@ abstract class AppConstants {
   static const String retryButtonText = 'Tentar novamente';
   static const String emptyCampaignsText =
       'Nenhuma campanha encontrada no reino.';
+  static const String emptyPlayerCampaignsText =
+      'Você ainda não foi convidado para nenhuma campanha como jogador.';
   static const String emptyCharactersText = 'Nenhum herói foi recrutado ainda.';
   static const String emptyClassesText =
       'Nenhuma classe de RPG personalizada criada.';
+  static const String emptyInvitationsText =
+      'Você não tem nenhum convite pendente no momento.';
+  static const String emptyCampaignCharactersText =
+      'Nenhum personagem vinculado a esta mesa.';
+  static const String emptyCampaignClassesText =
+      'Nenhuma classe foi disponibilizada pelo mestre ainda.';
 }
