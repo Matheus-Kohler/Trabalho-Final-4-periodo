@@ -262,3 +262,55 @@ Authorization: Bearer {{token}}
 DELETE {{baseUrl}}/campaigns/{{campaignId}}
 Accept: {{contentType}}
 Authorization: Bearer {{token}}
+
+
+### ============================================================================
+### 5. CONVITES DE CAMPANHA (Fluxo Mestre <-> Jogador)
+### ============================================================================
+
+### 5.1 Mestre busca personagens disponíveis para convidar para a campanha
+GET {{baseUrl}}/campaigns/1/invitations/available-characters
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 5.2 Mestre envia convite para um personagem de outro jogador
+# @name sendInvite
+POST {{baseUrl}}/campaigns/1/invitations
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+    "character_id": 2
+}
+
+### 5.3 Login como Jogador (dono do personagem convidado)
+# @name loginPlayerForInvite
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+    "email": "jogador@rpgmanager.com",
+    "password": "password123"
+}
+
+@playerToken = {{loginPlayerForInvite.response.body.data.token}}
+
+### 5.4 Jogador consulta seus convites pendentes
+# @name getPendingInvites
+GET {{baseUrl}}/invitations/pending
+Accept: {{contentType}}
+Authorization: Bearer {{playerToken}}
+
+### 5.5 Jogador aceita o convite (adiciona o personagem automaticamente na campanha)
+POST {{baseUrl}}/invitations/1/accept
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{playerToken}}
+
+### 5.6 (Alternativa) Jogador recusa o convite
+# POST {{baseUrl}}/invitations/1/reject
+# Content-Type: {{contentType}}
+# Accept: {{contentType}}
+# Authorization: Bearer {{playerToken}}
