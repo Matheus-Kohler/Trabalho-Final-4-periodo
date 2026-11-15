@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -46,5 +47,29 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Classes criadas por este usuário.
+     */
+    public function rpgClasses(): HasMany
+    {
+        return $this->hasMany(RPGClass::class);
+    }
+
+    /**
+     * Personagens criados por este usuário.
+     */
+    public function characters(): HasMany
+    {
+        return $this->hasMany(Character::class);
+    }
+
+    /**
+     * Campanhas em que este usuário atua como mestre.
+     */
+    public function masterCampaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class, 'user_id');
     }
 }
