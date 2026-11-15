@@ -63,28 +63,25 @@ class CharacterRepository
     }
 
     /**
-     * Retorna personagens que não estão na campanha e não possuem convite pendente.
+     * Retorna personagens de um jogador específico (por e-mail) que não estão na campanha e não possuem convite pendente.
      */
-    public function getAvailableForCampaignInvite(int $campaignId, ?string $search = null): Collection
+    public function getAvailableForCampaignInvite(int $campaignId, ?string $playerEmail = null): Collection
     {
-        $query = Character::with(['rpgClass', 'user:id,name,email'])
+        if (empty($playerEmail)) {
+            return new Collection();
+        }
+
+        return Character::with(['rpgClass', 'user:id,name,email'])
+            ->whereHas('user', function ($q) use ($playerEmail) {
+                $q->where('email', trim($playerEmail));
+            })
             ->whereDoesntHave('campaigns', function ($q) use ($campaignId) {
                 $q->where('campaign_id', $campaignId);
             })
             ->whereDoesntHave('invitations', function ($q) use ($campaignId) {
                 $q->where('campaign_id', $campaignId)->where('status', 'pendente');
-            });
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%")
-                         ->orWhere('email', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        return $query->orderBy('name')->get();
+            })
+            ->orderBy('name')
+            ->get();
     }
 }

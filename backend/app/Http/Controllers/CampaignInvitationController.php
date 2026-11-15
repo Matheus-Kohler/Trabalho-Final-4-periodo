@@ -14,15 +14,15 @@ class CampaignInvitationController extends Controller
     ) {}
 
     /**
-     * Lista personagens de outros jogadores disponíveis para serem convidados para uma campanha.
+     * Lista personagens de um jogador específico disponíveis para serem convidados para uma campanha.
      */
     public function availableCharacters(Request $request, int $campaignId): JsonResponse
     {
-        $search = $request->query('search');
+        $email = $request->query('email') ?? $request->query('search');
         $characters = $this->invitationService->listAvailableCharacters(
             $campaignId,
             $request->user()->id,
-            $search
+            $email
         );
 
         return response()->json([

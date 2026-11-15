@@ -20,10 +20,10 @@ class CampaignInvitationService
     ) {}
 
     /**
-     * Lista personagens disponíveis para serem convidados para a campanha.
+     * Lista personagens de um jogador específico (por e-mail) disponíveis para serem convidados para a campanha.
      * Apenas o mestre da campanha tem acesso.
      */
-    public function listAvailableCharacters(int $campaignId, int $masterUserId, ?string $search = null): Collection
+    public function listAvailableCharacters(int $campaignId, int $masterUserId, ?string $playerEmail = null): Collection
     {
         $campaign = $this->campaignRepository->findById($campaignId);
         if (! $campaign) {
@@ -34,7 +34,7 @@ class CampaignInvitationService
             throw new AccessDeniedHttpException('Apenas o mestre da campanha pode convidar personagens.');
         }
 
-        return $this->characterRepository->getAvailableForCampaignInvite($campaignId, $search);
+        return $this->characterRepository->getAvailableForCampaignInvite($campaignId, $playerEmail);
     }
 
     /**
