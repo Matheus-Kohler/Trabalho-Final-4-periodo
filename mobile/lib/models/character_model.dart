@@ -1,4 +1,5 @@
 import 'rpg_class_model.dart';
+import 'user_model.dart';
 
 class CharacterModel {
   final int id;
@@ -18,6 +19,7 @@ class CharacterModel {
   final String? history;
   final String? description;
   final RPGClassModel? rpgClass;
+  final UserModel? user;
 
   const CharacterModel({
     required this.id,
@@ -37,6 +39,7 @@ class CharacterModel {
     this.history,
     this.description,
     this.rpgClass,
+    this.user,
   });
 
   factory CharacterModel.fromJson(Map<String, dynamic> json) {
@@ -61,6 +64,9 @@ class CharacterModel {
       description: json['description'] as String?,
       rpgClass: json['rpg_class'] != null
           ? RPGClassModel.fromJson(json['rpg_class'] as Map<String, dynamic>)
+          : null,
+      user: json['user'] != null && json['user'] is Map<String, dynamic>
+          ? UserModel.fromJson(json['user'] as Map<String, dynamic>)
           : null,
     );
   }

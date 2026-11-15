@@ -8,6 +8,7 @@ import '../../models/character_model.dart';
 import '../../models/rpg_class_model.dart';
 import '../../services/campaign_service.dart';
 import '../../services/character_service.dart';
+import '../../services/invitation_service.dart';
 import '../../services/rpg_class_service.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/empty_state_view.dart';
@@ -27,6 +28,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   final _campaignService = CampaignService();
   final _characterService = CharacterService();
   final _classService = RPGClassService();
+  final _invitationService = InvitationService();
 
   bool _isLoading = true;
   String? _errorMessage;
@@ -128,6 +130,151 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             child: const Text('Fechar'),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _showInviteCharacterDialog() async {
+    final searchController = TextEditingController();
+    List<CharacterModel> availableCharacters = [];
+    bool isSearching = true;
+    String? searchError;
+
+    Future<void> fetchCharacters(StateSetter setDialogState, [String? query]) async {
+      setDialogState(() {
+        isSearching = true;
+        searchError = null;
+      });
+      try {
+        final list = await _invitationService.getAvailableCharacters(
+          widget.campaignId,
+          search: query,
+        );
+        setDialogState(() {
+          availableCharacters = list;
+          isSearching = false;
+        });
+      } catch (e) {
+        setDialogState(() {
+          searchError = e.toString();
+          isSearching = false;
+        });
+      }
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          if (isSearching && availableCharacters.isEmpty && searchError == null) {
+            fetchCharacters(setDialogState);
+          }
+
+          return AlertDialog(
+            title: const Text('Convidar Personagem de Outro Jogador'),
+            content: SizedBox(
+              width: 500,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar por personagem ou jogador...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.arrow_forward),
+                        onPressed: () => fetchCharacters(setDialogState, searchController.text),
+                      ),
+                      border: const OutlineInputBorder(),
+                    ),
+                    onSubmitted: (val) => fetchCharacters(setDialogState, val),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (isSearching)
+                    const Padding(
+                      padding: EdgeInsets.all(AppSpacing.md),
+                      child: CircularProgressIndicator(),
+                    )
+                  else if (searchError != null)
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Text(
+                        searchError!,
+                        style: const TextStyle(color: AppColors.error),
+                      ),
+                    )
+                  else if (availableCharacters.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(AppSpacing.md),
+                      child: Text('Nenhum personagem disponível para convite.'),
+                    )
+                  else
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: availableCharacters.length,
+                        itemBuilder: (context, i) {
+                          final char = availableCharacters[i];
+                          return ListTile(
+                            leading: const CircleAvatar(
+                              backgroundColor: AppColors.secondary,
+                              child: Icon(Icons.person, color: AppColors.textPrimary),
+                            ),
+                            title: Text(char.name),
+                            subtitle: Text(
+                              '${char.race} • ${char.rpgClass?.name ?? "Sem classe"}\nJogador: ${char.user?.name ?? char.user?.email ?? "Outro"}',
+                            ),
+                            isThreeLine: true,
+                            trailing: ElevatedButton.icon(
+                              icon: const Icon(Icons.send, size: 16),
+                              label: const Text('Convidar'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.secondary,
+                                foregroundColor: AppColors.textPrimary,
+                              ),
+                              onPressed: () async {
+                                Navigator.pop(ctx);
+                                try {
+                                  await _invitationService.sendInvitation(
+                                    widget.campaignId,
+                                    char.id,
+                                  );
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(this.context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Convite enviado com sucesso para ${char.name}!',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(this.context).showSnackBar(
+                                      SnackBar(content: Text(e.toString())),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Fechar'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -276,13 +423,25 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   'Personagens na Aventura',
                   style: AppTextStyles.titleMedium,
                 ),
-                IconButton(
-                  tooltip: 'Adicionar Personagem',
-                  icon: const Icon(
-                    Icons.person_add_alt,
-                    color: AppColors.secondary,
-                  ),
-                  onPressed: _showAddCharacterDialog,
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'Vincular meu personagem',
+                      icon: const Icon(
+                        Icons.person_add_alt,
+                        color: AppColors.secondary,
+                      ),
+                      onPressed: _showAddCharacterDialog,
+                    ),
+                    IconButton(
+                      tooltip: 'Convidar personagem de outro jogador',
+                      icon: const Icon(
+                        Icons.mail_outline,
+                        color: AppColors.secondary,
+                      ),
+                      onPressed: _showInviteCharacterDialog,
+                    ),
+                  ],
                 ),
               ],
             ),
