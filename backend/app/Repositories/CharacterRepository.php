@@ -61,4 +61,30 @@ class CharacterRepository
     {
         return (bool) $character->delete();
     }
+
+    /**
+     * Retorna personagens que não estão na campanha e não possuem convite pendente.
+     */
+    public function getAvailableForCampaignInvite(int $campaignId, ?string $search = null): Collection
+    {
+        $query = Character::with(['rpgClass', 'user:id,name,email'])
+            ->whereDoesntHave('campaigns', function ($q) use ($campaignId) {
+                $q->where('campaign_id', $campaignId);
+            })
+            ->whereDoesntHave('invitations', function ($q) use ($campaignId) {
+                $q->where('campaign_id', $campaignId)->where('status', 'pendente');
+            });
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        return $query->orderBy('name')->get();
+    }
 }
