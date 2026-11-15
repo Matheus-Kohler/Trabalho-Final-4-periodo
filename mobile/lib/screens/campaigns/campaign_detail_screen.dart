@@ -137,18 +137,29 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   Future<void> _showInviteCharacterDialog() async {
     final searchController = TextEditingController();
     List<CharacterModel> availableCharacters = [];
-    bool isSearching = true;
+    bool isSearching = false;
+    bool hasSearched = false;
     String? searchError;
 
-    Future<void> fetchCharacters(StateSetter setDialogState, [String? query]) async {
+    Future<void> fetchCharacters(StateSetter setDialogState) async {
+      final email = searchController.text.trim();
+      if (email.isEmpty) {
+        setDialogState(() {
+          searchError = 'Informe o e-mail do jogador para buscar os personagens.';
+        });
+        return;
+      }
+
       setDialogState(() {
         isSearching = true;
         searchError = null;
+        hasSearched = true;
       });
+
       try {
         final list = await _invitationService.getAvailableCharacters(
           widget.campaignId,
-          search: query,
+          email: email,
         );
         setDialogState(() {
           availableCharacters = list;
@@ -168,10 +179,6 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
-          if (isSearching && availableCharacters.isEmpty && searchError == null) {
-            fetchCharacters(setDialogState);
-          }
-
           return AlertDialog(
             title: const Text('Convidar Personagem de Outro Jogador'),
             content: SizedBox(
@@ -181,18 +188,21 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                 children: [
                   TextField(
                     controller: searchController,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      hintText: 'Buscar por personagem ou jogador...',
-                      prefixIcon: const Icon(Icons.search),
+                      labelText: 'E-mail do Jogador',
+                      hintText: 'ex: jogador@rpgmanager.com',
+                      prefixIcon: const Icon(Icons.email_outlined),
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.arrow_forward),
-                        onPressed: () => fetchCharacters(setDialogState, searchController.text),
+                        icon: const Icon(Icons.search),
+                        tooltip: 'Buscar personagens deste jogador',
+                        onPressed: () => fetchCharacters(setDialogState),
                       ),
                       border: const OutlineInputBorder(),
                     ),
-                    onSubmitted: (val) => fetchCharacters(setDialogState, val),
+                    onSubmitted: (_) => fetchCharacters(setDialogState),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.md),
                   if (isSearching)
                     const Padding(
                       padding: EdgeInsets.all(AppSpacing.md),
@@ -206,10 +216,22 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                         style: const TextStyle(color: AppColors.error),
                       ),
                     )
+                  else if (!hasSearched)
+                    const Padding(
+                      padding: EdgeInsets.all(AppSpacing.md),
+                      child: Text(
+                        'Digite o e-mail cadastrado do jogador para localizar os personagens disponíveis para convite.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    )
                   else if (availableCharacters.isEmpty)
                     const Padding(
                       padding: EdgeInsets.all(AppSpacing.md),
-                      child: Text('Nenhum personagem disponível para convite.'),
+                      child: Text(
+                        'Nenhum personagem disponível encontrado para este e-mail (ou o personagem já está na campanha/convidado).',
+                        textAlign: TextAlign.center,
+                      ),
                     )
                   else
                     Flexible(
@@ -225,7 +247,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                             ),
                             title: Text(char.name),
                             subtitle: Text(
-                              '${char.race} • ${char.rpgClass?.name ?? "Sem classe"}\nJogador: ${char.user?.name ?? char.user?.email ?? "Outro"}',
+                              '${char.race} • ${char.rpgClass?.name ?? "Sem classe"} • Nível ${char.level}\nJogador: ${char.user?.name ?? char.user?.email ?? searchController.text}',
                             ),
                             isThreeLine: true,
                             trailing: ElevatedButton.icon(

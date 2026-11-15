@@ -5,13 +5,13 @@ import 'api_client.dart';
 class InvitationService {
   final ApiClient _client = ApiClient();
 
-  /// Busca personagens disponíveis para convidar para uma campanha.
+  /// Busca personagens de um jogador por e-mail para convidar para uma campanha.
   Future<List<CharacterModel>> getAvailableCharacters(
     int campaignId, {
-    String? search,
+    String? email,
   }) async {
-    final query = (search != null && search.trim().isNotEmpty)
-        ? '?search=${Uri.encodeComponent(search.trim())}'
+    final query = (email != null && email.trim().isNotEmpty)
+        ? '?email=${Uri.encodeComponent(email.trim())}'
         : '';
     final response = await _client.get(
       '/campaigns/$campaignId/invitations/available-characters$query',
