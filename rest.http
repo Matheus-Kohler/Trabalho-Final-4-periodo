@@ -1,0 +1,264 @@
+@baseUrl = http://localhost:8000/api
+@contentType = application/json
+
+### ============================================================================
+### 1. AUTENTICAÇÃO
+### ============================================================================
+
+### 1.1 Registrar novo usuário Mestre
+# @name registerMaster
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+    "name": "Mestre de Testes",
+    "email": "mestre.teste@rpgmanager.com",
+    "password": "password123"
+}
+
+### 1.2 Login como Mestre (gera token)
+# @name loginMaster
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+    "email": "mestre@rpgmanager.com",
+    "password": "password123"
+}
+
+### Extrai token do login
+@token = {{loginMaster.response.body.data.token}}
+
+### 1.3 Obter dados do usuário autenticado (Me)
+GET {{baseUrl}}/auth/me
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 1.4 Logout
+POST {{baseUrl}}/auth/logout
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+
+### ============================================================================
+### 2. CLASSES DO RPG (CRUD)
+### ============================================================================
+
+### 2.1 Listar classes do usuário autenticado
+GET {{baseUrl}}/classes
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 2.2 Criar nova classe
+# @name createClass
+POST {{baseUrl}}/classes
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+    "name": "Paladino da Luz",
+    "description": "Guerreiro sagrado juramentado a defender a justiça e erradicar o mal.",
+    "hp_base": 14,
+    "gold_initial": 150.00,
+    "abilities": [
+        {
+            "name": "Destruição Divina",
+            "description": "Canaliza energia sagrada na arma desferindo dano radiante extra."
+        }
+    ]
+}
+
+@classId = {{createClass.response.body.data.id}}
+
+### 2.3 Visualizar classe por ID
+GET {{baseUrl}}/classes/{{classId}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 2.4 Atualizar classe
+PUT {{baseUrl}}/classes/{{classId}}
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+    "name": "Paladino Juramentado",
+    "description": "Descrição atualizada da classe de paladino sagrado.",
+    "hp_base": 15,
+    "gold_initial": 180.00
+}
+
+### 2.5 Adicionar habilidade à classe
+# @name addAbility
+POST {{baseUrl}}/classes/{{classId}}/abilities
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+    "name": "Imposição das Mãos",
+    "description": "Toque curativo que restaura pontos de vida a criaturas tocadas."
+}
+
+@abilityId = {{addAbility.response.body.data.id}}
+
+### 2.6 Remover habilidade da classe
+DELETE {{baseUrl}}/classes/{{classId}}/abilities/{{abilityId}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 2.7 Remover classe
+DELETE {{baseUrl}}/classes/{{classId}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+
+### ============================================================================
+### 3. PERSONAGENS (CRUD)
+### ============================================================================
+
+### 3.1 Listar personagens do usuário autenticado
+GET {{baseUrl}}/characters
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 3.2 Criar novo personagem
+# @name createCharacter
+POST {{baseUrl}}/characters
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+    "name": "Valeros Coração de Leão",
+    "race": "Humano",
+    "rpg_class_id": 1,
+    "level": 1,
+    "hp_current": 12,
+    "strength": 16,
+    "dexterity": 14,
+    "constitution": 15,
+    "intelligence": 10,
+    "wisdom": 12,
+    "charisma": 11,
+    "gold": 50.00,
+    "history": "Soldado veterano das legiões imperiais em busca de novas aventuras.",
+    "description": "Guerreiro alto de armadura de placas e capa vermelha."
+}
+
+@characterId = {{createCharacter.response.body.data.id}}
+
+### 3.3 Visualizar personagem por ID
+GET {{baseUrl}}/characters/{{characterId}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 3.4 Atualizar dados do personagem
+PUT {{baseUrl}}/characters/{{characterId}}
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+    "name": "Valeros o Campeão",
+    "race": "Humano",
+    "level": 2,
+    "hp_current": 20,
+    "strength": 17,
+    "dexterity": 14,
+    "constitution": 15,
+    "intelligence": 10,
+    "wisdom": 12,
+    "charisma": 11,
+    "gold": 120.00
+}
+
+### 3.5 Remover personagem
+DELETE {{baseUrl}}/characters/{{characterId}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+
+### ============================================================================
+### 4. CAMPANHAS (CRUD & VÍNCULOS DO MESTRE)
+### ============================================================================
+
+### 4.1 Listar campanhas onde sou o mestre
+GET {{baseUrl}}/campaigns
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 4.2 Listar campanhas em que participo como jogador
+GET {{baseUrl}}/campaigns/participating
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 4.3 Criar nova campanha
+# @name createCampaign
+POST {{baseUrl}}/campaigns
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+    "name": "A Cripta do Dragão Vermelho",
+    "description": "Aventureiros exploram as montanhas de cinzas onde um antigo dragão despertou.",
+    "status": "ativa"
+}
+
+@campaignId = {{createCampaign.response.body.data.id}}
+
+### 4.4 Visualizar campanha por ID
+GET {{baseUrl}}/campaigns/{{campaignId}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 4.5 Atualizar campanha
+PUT {{baseUrl}}/campaigns/{{campaignId}}
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+    "name": "A Cripta do Dragão Vermelho - Temporada 2",
+    "description": "Atualização na descrição da trama da campanha.",
+    "status": "pausada"
+}
+
+### 4.6 Mestre disponibiliza uma classe na campanha
+POST {{baseUrl}}/campaigns/{{campaignId}}/classes
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+    "rpg_class_id": 1
+}
+
+### 4.7 Mestre vincula um personagem à campanha
+POST {{baseUrl}}/campaigns/{{campaignId}}/characters
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+    "character_id": 1
+}
+
+### 4.8 Mestre desvincula personagem da campanha
+DELETE {{baseUrl}}/campaigns/{{campaignId}}/characters/1
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 4.9 Mestre remove disponibilização da classe na campanha
+DELETE {{baseUrl}}/campaigns/{{campaignId}}/classes/1
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### 4.10 Remover campanha
+DELETE {{baseUrl}}/campaigns/{{campaignId}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
