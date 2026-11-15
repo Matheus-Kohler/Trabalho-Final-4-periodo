@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Character extends Model
 {
@@ -80,5 +81,13 @@ class Character extends Model
         return $this->belongsToMany(Campaign::class, 'campaign_character', 'character_id', 'campaign_id')
             ->withPivot('joined_at')
             ->withTimestamps();
+    }
+
+    /**
+     * Convites recebidos para este personagem participar de campanhas.
+     */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(CampaignInvitation::class, 'character_id');
     }
 }
