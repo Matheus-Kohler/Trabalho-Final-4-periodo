@@ -1,0 +1,68 @@
+name: rpg-manager
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: rpg_manager_php
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    depends_on:
+      - mysql
+    networks:
+      - rpg_manager_net
+
+  nginx:
+    image: nginx:alpine
+    container_name: rpg_manager_nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - rpg_manager_net
+
+  mysql:
+    image: mysql:9
+    container_name: rpg_manager_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: rpg_manager
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: rpg_user
+      MYSQL_PASSWORD: rpg_password
+    ports:
+      - "33066:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - rpg_manager_net
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: rpg_manager_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    depends_on:
+      - mysql
+    networks:
+      - rpg_manager_net
+
+volumes:
+  mysql_data:
+
+networks:
+  rpg_manager_net:
+    driver: bridge
