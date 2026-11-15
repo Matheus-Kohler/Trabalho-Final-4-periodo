@@ -397,10 +397,22 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
     final campaign = _campaign!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(campaign.name)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
+      appBar: AppBar(
+        title: Text(campaign.name),
+        actions: [
+          IconButton(
+            tooltip: 'Atualizar informações',
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadDetails,
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _loadDetails,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Card Principal da Campanha
@@ -569,6 +581,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }

@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
   final _invitationService = InvitationService();
   int _currentIndex = 0;
+  int _refreshKey = 0;
   UserModel? _currentUser;
 
   @override
@@ -146,6 +147,9 @@ class _HomeScreenState extends State<HomeScreen> {
               try {
                 await _invitationService.acceptInvitation(inv.id);
                 if (mounted) {
+                  setState(() {
+                    _refreshKey++;
+                  });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
@@ -176,12 +180,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  final List<Widget> _tabs = const [
-    CampaignsListScreen(),
-    CharactersListScreen(),
-    ClassesListScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -208,10 +206,23 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           IconButton(
+            tooltip: 'Atualizar dados',
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                _refreshKey++;
+              });
+              _checkPendingInvitations();
+            },
+          ),
+          IconButton(
             tooltip: 'Convites de Campanha',
             icon: const Icon(Icons.mail_outline),
             onPressed: () async {
               await context.pushNamed(AppRoutes.invitations);
+              setState(() {
+                _refreshKey++;
+              });
               _checkPendingInvitations();
             },
           ),
@@ -222,7 +233,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: IndexedStack(index: _currentIndex, children: _tabs),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          CampaignsListScreen(key: ValueKey('campaigns_$_refreshKey')),
+          CharactersListScreen(key: ValueKey('characters_$_refreshKey')),
+          ClassesListScreen(key: ValueKey('classes_$_refreshKey')),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         backgroundColor: AppColors.surface,

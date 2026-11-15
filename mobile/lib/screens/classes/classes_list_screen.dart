@@ -107,16 +107,25 @@ class _ClassesListScreenState extends State<ClassesListScreen> {
       body: RefreshIndicator(
         onRefresh: _loadClasses,
         child: _classes.isEmpty
-            ? EmptyStateView(
-                message: AppConstants.emptyClassesText,
-                icon: Icons.auto_fix_high_outlined,
-                actionLabel: 'Criar Classe Personalizada',
-                onAction: () async {
-                  await context.pushNamed(AppRoutes.classForm);
-                  _loadClasses();
-                },
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: EmptyStateView(
+                      message: AppConstants.emptyClassesText,
+                      icon: Icons.auto_fix_high_outlined,
+                      actionLabel: 'Criar Classe Personalizada',
+                      onAction: () async {
+                        await context.pushNamed(AppRoutes.classForm);
+                        _loadClasses();
+                      },
+                    ),
+                  ),
+                ],
               )
             : ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(AppSpacing.md),
                 itemCount: _classes.length,
                 itemBuilder: (context, index) {

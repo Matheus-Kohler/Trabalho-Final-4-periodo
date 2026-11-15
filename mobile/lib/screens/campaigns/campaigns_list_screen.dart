@@ -195,17 +195,26 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
                       RefreshIndicator(
                         onRefresh: _loadCampaigns,
                         child: _masterCampaigns.isEmpty
-                            ? EmptyStateView(
-                                message: AppConstants.emptyCampaignsText,
-                                actionLabel: 'Criar Minha Primeira Campanha',
-                                onAction: () async {
-                                  await context.pushNamed(
-                                    AppRoutes.campaignForm,
-                                  );
-                                  _loadCampaigns();
-                                },
+                            ? ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                children: [
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height * 0.6,
+                                    child: EmptyStateView(
+                                      message: AppConstants.emptyCampaignsText,
+                                      actionLabel: 'Criar Minha Primeira Campanha',
+                                      onAction: () async {
+                                        await context.pushNamed(
+                                          AppRoutes.campaignForm,
+                                        );
+                                        _loadCampaigns();
+                                      },
+                                    ),
+                                  ),
+                                ],
                               )
                             : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
                                 padding: const EdgeInsets.all(AppSpacing.md),
                                 itemCount: _masterCampaigns.length,
                                 itemBuilder: (context, index) {
@@ -220,12 +229,21 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
                       RefreshIndicator(
                         onRefresh: _loadCampaigns,
                         child: _playerCampaigns.isEmpty
-                            ? const EmptyStateView(
-                                message:
-                                    'Você ainda não foi convidado para nenhuma campanha como jogador.',
-                                icon: Icons.group_off_outlined,
+                            ? ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                children: [
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height * 0.6,
+                                    child: const EmptyStateView(
+                                      message:
+                                          'Você ainda não foi convidado para nenhuma campanha como jogador.',
+                                      icon: Icons.group_off_outlined,
+                                    ),
+                                  ),
+                                ],
                               )
                             : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
                                 padding: const EdgeInsets.all(AppSpacing.md),
                                 itemCount: _playerCampaigns.length,
                                 itemBuilder: (context, index) {

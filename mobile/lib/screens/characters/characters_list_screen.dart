@@ -107,16 +107,25 @@ class _CharactersListScreenState extends State<CharactersListScreen> {
       body: RefreshIndicator(
         onRefresh: _loadCharacters,
         child: _characters.isEmpty
-            ? EmptyStateView(
-                message: AppConstants.emptyCharactersText,
-                icon: Icons.shield_outlined,
-                actionLabel: 'Criar Meu Primeiro Herói',
-                onAction: () async {
-                  await context.pushNamed(AppRoutes.characterForm);
-                  _loadCharacters();
-                },
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: EmptyStateView(
+                      message: AppConstants.emptyCharactersText,
+                      icon: Icons.shield_outlined,
+                      actionLabel: 'Criar Meu Primeiro Herói',
+                      onAction: () async {
+                        await context.pushNamed(AppRoutes.characterForm);
+                        _loadCharacters();
+                      },
+                    ),
+                  ),
+                ],
               )
             : ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(AppSpacing.md),
                 itemCount: _characters.length,
                 itemBuilder: (context, index) {
