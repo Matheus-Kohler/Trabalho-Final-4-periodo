@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\CampaignInvitationController;
 use App\Http\Controllers\CharacterController;
 use App\Http\Controllers\RPGClassController;
 use Illuminate\Support\Facades\Route;
@@ -45,4 +46,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/campaigns/{id}/characters/{characterId}', [CampaignController::class, 'removeCharacter']);
     Route::post('/campaigns/{id}/classes', [CampaignController::class, 'addClass']);
     Route::delete('/campaigns/{id}/classes/{classId}', [CampaignController::class, 'removeClass']);
+
+    // 4. Convites de Campanha
+    Route::get('/campaigns/{id}/invitations/available-characters', [CampaignInvitationController::class, 'availableCharacters']);
+    Route::post('/campaigns/{id}/invitations', [CampaignInvitationController::class, 'store']);
+    Route::get('/invitations/pending', [CampaignInvitationController::class, 'pending']);
+    Route::post('/invitations/{id}/accept', [CampaignInvitationController::class, 'accept']);
+    Route::post('/invitations/{id}/reject', [CampaignInvitationController::class, 'reject']);
 });
