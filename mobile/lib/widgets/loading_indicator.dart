@@ -7,10 +7,7 @@ import '../core/theme/app_text_styles.dart';
 class LoadingIndicator extends StatelessWidget {
   final String message;
 
-  const LoadingIndicator({
-    super.key,
-    this.message = AppConstants.loadingText,
-  });
+  const LoadingIndicator({super.key, this.message = AppConstants.loadingText});
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +17,7 @@ class LoadingIndicator extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(
-              color: AppColors.secondary,
-            ),
+            const CircularProgressIndicator(color: AppColors.secondary),
             const SizedBox(height: AppSpacing.md),
             Text(
               message,

@@ -25,11 +25,7 @@ class EmptyStateView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: AppColors.textMuted,
-              size: AppSpacing.xxl,
-            ),
+            Icon(icon, color: AppColors.textMuted, size: AppSpacing.xxl),
             const SizedBox(height: AppSpacing.md),
             Text(
               message,

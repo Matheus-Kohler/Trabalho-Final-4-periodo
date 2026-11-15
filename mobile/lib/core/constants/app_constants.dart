@@ -25,9 +25,12 @@ abstract class AppConstants {
 
   /// Textos de interface padronizados.
   static const String loadingText = 'Carregando aventuras...';
-  static const String errorDefaultText = 'Ocorreu uma falha na conexão com o reino.';
+  static const String errorDefaultText =
+      'Ocorreu uma falha na conexão com o reino.';
   static const String retryButtonText = 'Tentar novamente';
-  static const String emptyCampaignsText = 'Nenhuma campanha encontrada no reino.';
+  static const String emptyCampaignsText =
+      'Nenhuma campanha encontrada no reino.';
   static const String emptyCharactersText = 'Nenhum herói foi recrutado ainda.';
-  static const String emptyClassesText = 'Nenhuma classe de RPG personalizada criada.';
+  static const String emptyClassesText =
+      'Nenhuma classe de RPG personalizada criada.';
 }

@@ -8,14 +8,18 @@ class CampaignService {
   Future<List<CampaignModel>> getMasterCampaigns() async {
     final response = await _client.get('/campaigns');
     final data = response['data'] as List? ?? [];
-    return data.map((item) => CampaignModel.fromJson(item as Map<String, dynamic>)).toList();
+    return data
+        .map((item) => CampaignModel.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   /// Campanhas em que o usuário logado participa como jogador.
   Future<List<CampaignModel>> getParticipatingCampaigns() async {
     final response = await _client.get('/campaigns/participating');
     final data = response['data'] as List? ?? [];
-    return data.map((item) => CampaignModel.fromJson(item as Map<String, dynamic>)).toList();
+    return data
+        .map((item) => CampaignModel.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<CampaignModel> getCampaign(int id) async {
@@ -31,14 +35,16 @@ class CampaignService {
   }) async {
     final response = await _client.post('/campaigns', {
       'name': name,
-      if (description != null && description.isNotEmpty) 'description': description,
+      if (description != null && description.isNotEmpty)
+        'description': description,
       'status': status,
     });
     final data = response['data'] as Map<String, dynamic>;
     return CampaignModel.fromJson(data);
   }
 
-  Future<CampaignModel> updateCampaign(int id, {
+  Future<CampaignModel> updateCampaign(
+    int id, {
     required String name,
     String? description,
     required String status,
@@ -65,7 +71,9 @@ class CampaignService {
   }
 
   Future<CampaignModel> detachCharacter(int campaignId, int characterId) async {
-    final response = await _client.delete('/campaigns/$campaignId/characters/$characterId');
+    final response = await _client.delete(
+      '/campaigns/$campaignId/characters/$characterId',
+    );
     final data = response['data'] as Map<String, dynamic>;
     return CampaignModel.fromJson(data);
   }
@@ -79,7 +87,9 @@ class CampaignService {
   }
 
   Future<CampaignModel> detachClass(int campaignId, int classId) async {
-    final response = await _client.delete('/campaigns/$campaignId/classes/$classId');
+    final response = await _client.delete(
+      '/campaigns/$campaignId/classes/$classId',
+    );
     final data = response['data'] as Map<String, dynamic>;
     return CampaignModel.fromJson(data);
   }

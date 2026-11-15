@@ -8,7 +8,9 @@ class RPGClassService {
   Future<List<RPGClassModel>> getClasses() async {
     final response = await _client.get('/classes');
     final data = response['data'] as List? ?? [];
-    return data.map((item) => RPGClassModel.fromJson(item as Map<String, dynamic>)).toList();
+    return data
+        .map((item) => RPGClassModel.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<RPGClassModel> getClass(int id) async {
@@ -26,7 +28,8 @@ class RPGClassService {
   }) async {
     final response = await _client.post('/classes', {
       'name': name,
-      if (description != null && description.isNotEmpty) 'description': description,
+      if (description != null && description.isNotEmpty)
+        'description': description,
       'hp_base': hpBase,
       'gold_initial': goldInitial,
       if (abilities.isNotEmpty) 'abilities': abilities,
@@ -35,7 +38,8 @@ class RPGClassService {
     return RPGClassModel.fromJson(data);
   }
 
-  Future<RPGClassModel> updateClass(int id, {
+  Future<RPGClassModel> updateClass(
+    int id, {
     required String name,
     String? description,
     required int hpBase,
@@ -55,13 +59,15 @@ class RPGClassService {
     await _client.delete('/classes/$id');
   }
 
-  Future<ClassAbilityModel> addAbility(int classId, {
+  Future<ClassAbilityModel> addAbility(
+    int classId, {
     required String name,
     String? description,
   }) async {
     final response = await _client.post('/classes/$classId/abilities', {
       'name': name,
-      if (description != null && description.isNotEmpty) 'description': description,
+      if (description != null && description.isNotEmpty)
+        'description': description,
     });
     final data = response['data'] as Map<String, dynamic>;
     return ClassAbilityModel.fromJson(data);

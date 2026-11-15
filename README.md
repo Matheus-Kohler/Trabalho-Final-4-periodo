@@ -87,8 +87,26 @@ docker compose exec php php artisan migrate --seed
 
 ---
 
+## 📱 Como Executar o Aplicativo Flutter (Web / Chrome)
+
+O frontend foi desenvolvido com foco em **execução Web limpa e responsiva** (conforme aprendido em aula):
+
+```bash
+# 1. Entrar na pasta do aplicativo
+cd mobile
+
+# 2. Obter as dependências
+flutter pub get
+
+# 3. Executar diretamente no Google Chrome
+flutter run -d chrome
+```
+
+---
+
 ## 📦 Estrutura de Diretórios
-- `backend/` — API REST desenvolvida em Laravel
+- `backend/` — API REST desenvolvida em Laravel (Fase 1)
+- `mobile/` — Aplicativo em Flutter/Dart (Fase 2)
 - `docker/` — Configurações de PHP 8.4, Nginx e MySQL
 - `rest.http` — Suíte de testes manuais da API REST
-- `mobile/` — Aplicativo Mobile em Flutter (Fase 2 - em breve)
+- `referencias/` — Projetos de aula guardados apenas como consulta interna (não versionados)

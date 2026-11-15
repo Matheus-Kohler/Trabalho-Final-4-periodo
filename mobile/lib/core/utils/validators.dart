@@ -17,7 +17,11 @@ abstract class AppValidators {
     return null;
   }
 
-  static String? minLength(String? value, int min, [String fieldName = 'Campo']) {
+  static String? minLength(
+    String? value,
+    int min, [
+    String fieldName = 'Campo',
+  ]) {
     if (value == null || value.trim().length < min) {
       return '$fieldName deve conter pelo menos $min caracteres.';
     }
