@@ -4,13 +4,18 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/validators.dart';
+import '../../models/campaign_model.dart';
 import '../../services/campaign_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_text_field.dart';
+import '../../widgets/error_view.dart';
+import '../../widgets/loading_indicator.dart';
 
 class CampaignFormScreen extends StatefulWidget {
-  const CampaignFormScreen({super.key});
+  final int? campaignId;
+
+  const CampaignFormScreen({super.key, this.campaignId});
 
   @override
   State<CampaignFormScreen> createState() => _CampaignFormScreenState();
@@ -24,13 +29,52 @@ class _CampaignFormScreenState extends State<CampaignFormScreen> {
 
   String _status = 'ativa';
   bool _isLoading = false;
+  bool _isLoadingInitialData = false;
   String? _errorMessage;
+  String? _initialDataError;
+
+  bool get _isEditing => widget.campaignId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      _loadCampaign();
+    }
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCampaign() async {
+    setState(() {
+      _isLoadingInitialData = true;
+      _initialDataError = null;
+    });
+    try {
+      final CampaignModel campaign = await _campaignService.getCampaign(
+        widget.campaignId!,
+      );
+      if (mounted) {
+        setState(() {
+          _nameController.text = campaign.name;
+          _descriptionController.text = campaign.description ?? '';
+          _status = campaign.status;
+          _isLoadingInitialData = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _initialDataError = e.toString();
+          _isLoadingInitialData = false;
+        });
+      }
+    }
   }
 
   Future<void> _handleSave() async {
@@ -42,18 +86,29 @@ class _CampaignFormScreenState extends State<CampaignFormScreen> {
     });
 
     try {
-      await _campaignService.createCampaign(
-        name: _nameController.text.trim(),
-        description: _descriptionController.text.trim(),
-        status: _status,
-      );
+      if (_isEditing) {
+        await _campaignService.updateCampaign(
+          widget.campaignId!,
+          name: _nameController.text.trim(),
+          description: _descriptionController.text.trim(),
+          status: _status,
+        );
+      } else {
+        await _campaignService.createCampaign(
+          name: _nameController.text.trim(),
+          description: _descriptionController.text.trim(),
+          status: _status,
+        );
+      }
       if (mounted) {
         context.pop();
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -65,8 +120,24 @@ class _CampaignFormScreenState extends State<CampaignFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingInitialData) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Editar Campanha')),
+        body: const LoadingIndicator(message: 'Carregando campanha...'),
+      );
+    }
+
+    if (_initialDataError != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Editar Campanha')),
+        body: ErrorView(message: _initialDataError!, onRetry: _loadCampaign),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Nova Campanha')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Editar Campanha' : 'Nova Campanha'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: AppCard(
@@ -140,7 +211,7 @@ class _CampaignFormScreenState extends State<CampaignFormScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 AppButton(
-                  label: 'Criar Campanha',
+                  label: _isEditing ? 'Atualizar Campanha' : 'Criar Campanha',
                   icon: Icons.check,
                   isLoading: _isLoading,
                   onPressed: _handleSave,

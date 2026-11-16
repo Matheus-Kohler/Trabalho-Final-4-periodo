@@ -7,6 +7,7 @@ import '../../core/utils/formatters.dart';
 import '../../models/campaign_model.dart';
 import '../../models/character_model.dart';
 import '../../models/rpg_class_model.dart';
+import '../../services/app_data_notifier.dart';
 import '../../services/campaign_service.dart';
 import '../../services/character_service.dart';
 import '../../services/invitation_service.dart';
@@ -34,14 +35,27 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   CampaignModel? _campaign;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    AppDataNotifier.instance.addListener(_handleDataChanged);
     _loadDetails();
   }
 
+  void _handleDataChanged() {
+    _loadDetails();
+  }
+
+  @override
+  void dispose() {
+    AppDataNotifier.instance.removeListener(_handleDataChanged);
+    super.dispose();
+  }
+
   Future<void> _loadDetails() async {
+    final generation = ++_loadGeneration;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -49,14 +63,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
 
     try {
       final campaign = await _campaignService.getCampaign(widget.campaignId);
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _campaign = campaign;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _errorMessage = e.toString();
           _isLoading = false;
@@ -112,7 +126,6 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       widget.campaignId,
                       char.id,
                     );
-                    _loadDetails();
                   } catch (e) {
                     if (mounted) {
                       ScaffoldMessenger.of(
@@ -146,7 +159,8 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
       final email = searchController.text.trim();
       if (email.isEmpty) {
         setDialogState(() {
-          searchError = 'Informe o e-mail do jogador para buscar os personagens.';
+          searchError =
+              'Informe o e-mail do jogador para buscar os personagens.';
         });
         return;
       }
@@ -214,7 +228,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       padding: const EdgeInsets.all(AppSpacing.md),
                       child: Text(
                         searchError!,
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.error,
+                        ),
                       ),
                     )
                   else if (!hasSearched)
@@ -223,7 +239,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       child: Text(
                         'Digite o e-mail cadastrado do jogador para localizar os personagens disponíveis para convite.',
                         textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     )
                   else if (availableCharacters.isEmpty)
@@ -232,7 +250,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       child: Text(
                         'Nenhum personagem disponível encontrado para este e-mail (ou o personagem já está na campanha/convidado).',
                         textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     )
                   else
@@ -245,7 +265,10 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                           return ListTile(
                             leading: const CircleAvatar(
                               backgroundColor: AppColors.secondary,
-                              child: Icon(Icons.person, color: AppColors.textPrimary),
+                              child: Icon(
+                                Icons.person,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                             title: Text(char.name),
                             subtitle: Text(
@@ -267,7 +290,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                                     char.id,
                                   );
                                   if (mounted) {
-                                    ScaffoldMessenger.of(this.context).showSnackBar(
+                                    ScaffoldMessenger.of(
+                                      this.context,
+                                    ).showSnackBar(
                                       SnackBar(
                                         content: Text(
                                           'Convite enviado com sucesso para ${char.name}!',
@@ -277,7 +302,9 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                                   }
                                 } catch (e) {
                                   if (mounted) {
-                                    ScaffoldMessenger.of(this.context).showSnackBar(
+                                    ScaffoldMessenger.of(
+                                      this.context,
+                                    ).showSnackBar(
                                       SnackBar(content: Text(e.toString())),
                                     );
                                   }
@@ -354,7 +381,6 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       widget.campaignId,
                       rpgClass.id,
                     );
-                    _loadDetails();
                   } catch (e) {
                     if (mounted) {
                       ScaffoldMessenger.of(
@@ -415,174 +441,191 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Card Principal da Campanha
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Status: ${campaign.status.toUpperCase()}',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: campaign.status == 'ativa'
-                              ? AppColors.success
-                              : AppColors.warning,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (campaign.master != null)
-                        Text(
-                          'Mestre: ${campaign.master!.name}',
-                          style: AppTextStyles.bodySmall,
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    campaign.description ?? 'Sem descrição detalhada.',
-                    style: AppTextStyles.bodyLarge,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Seção de Personagens
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Personagens na Aventura',
-                  style: AppTextStyles.titleMedium,
-                ),
-                Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Card Principal da Campanha
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconButton(
-                      tooltip: 'Vincular meu personagem',
-                      icon: const Icon(
-                        Icons.person_add_alt,
-                        color: AppColors.secondary,
-                      ),
-                      onPressed: _showAddCharacterDialog,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Status: ${campaign.status.toUpperCase()}',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: campaign.status == 'ativa'
+                                ? AppColors.success
+                                : AppColors.warning,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (campaign.master != null)
+                          Text(
+                            'Mestre: ${campaign.master!.name}',
+                            style: AppTextStyles.bodySmall,
+                          ),
+                      ],
                     ),
-                    IconButton(
-                      tooltip: 'Convidar personagem de outro jogador',
-                      icon: const Icon(
-                        Icons.mail_outline,
-                        color: AppColors.secondary,
-                      ),
-                      onPressed: _showInviteCharacterDialog,
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      campaign.description ?? 'Sem descrição detalhada.',
+                      style: AppTextStyles.bodyLarge,
                     ),
                   ],
                 ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            if (campaign.characters.isEmpty)
-              const EmptyStateView(
-                message: AppConstants.emptyCampaignCharactersText,
-                icon: Icons.person_off_outlined,
-              )
-            else
-              ...campaign.characters.map(
-                (char) => AppCard(
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const CircleAvatar(
-                      backgroundColor: AppColors.primary,
-                      child: Icon(Icons.shield, color: AppColors.textPrimary),
-                    ),
-                    title: Text(char.name, style: AppTextStyles.titleSmall),
-                    subtitle: Text(
-                      '${char.race} • ${char.rpgClass?.name ?? "Sem classe"} • Nível ${char.level}\nHP: ${char.hpCurrent} • ${AppFormatters.gold(char.gold)}',
-                      style: AppTextStyles.bodySmall,
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(
-                        Icons.remove_circle_outline,
-                        color: AppColors.error,
-                      ),
-                      tooltip: 'Remover da campanha',
-                      onPressed: () async {
-                        await _campaignService.detachCharacter(
-                          campaign.id,
-                          char.id,
-                        );
-                        _loadDetails();
-                      },
-                    ),
-                  ),
-                ),
               ),
+              const SizedBox(height: AppSpacing.lg),
 
-            const SizedBox(height: AppSpacing.lg),
-
-            // Seção de Classes Liberadas pelo Mestre
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Classes Disponibilizadas',
-                  style: AppTextStyles.titleMedium,
-                ),
-                IconButton(
-                  tooltip: 'Disponibilizar Classe',
-                  icon: const Icon(
-                    Icons.add_circle,
-                    color: AppColors.secondary,
+              // Seção de Personagens
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Personagens na Aventura',
+                    style: AppTextStyles.titleMedium,
                   ),
-                  onPressed: _showAddClassDialog,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            if (campaign.classes.isEmpty)
-              const EmptyStateView(
-                message: AppConstants.emptyCampaignClassesText,
-                icon: Icons.lock_outline,
-              )
-            else
-              ...campaign.classes.map(
-                (rpgClass) => AppCard(
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const CircleAvatar(
-                      backgroundColor: AppColors.secondary,
-                      child: Icon(
-                        Icons.auto_fix_high,
-                        color: AppColors.textPrimary,
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'Vincular meu personagem',
+                        icon: const Icon(
+                          Icons.person_add_alt,
+                          color: AppColors.secondary,
+                        ),
+                        onPressed: _showAddCharacterDialog,
                       ),
-                    ),
-                    title: Text(rpgClass.name, style: AppTextStyles.titleSmall),
-                    subtitle: Text(
-                      'HP Base: ${rpgClass.hpBase} • Ouro Inicial: ${AppFormatters.gold(rpgClass.goldInitial)}\n${rpgClass.abilities.length} habilidades especiais',
-                      style: AppTextStyles.bodySmall,
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(
-                        Icons.remove_circle_outline,
-                        color: AppColors.error,
+                      IconButton(
+                        tooltip: 'Convidar personagem de outro jogador',
+                        icon: const Icon(
+                          Icons.mail_outline,
+                          color: AppColors.secondary,
+                        ),
+                        onPressed: _showInviteCharacterDialog,
                       ),
-                      tooltip: 'Revogar classe da campanha',
-                      onPressed: () async {
-                        await _campaignService.detachClass(
-                          campaign.id,
-                          rpgClass.id,
-                        );
-                        _loadDetails();
-                      },
-                    ),
+                    ],
                   ),
-                ),
+                ],
               ),
-          ],
+              const SizedBox(height: AppSpacing.sm),
+              if (campaign.characters.isEmpty)
+                const EmptyStateView(
+                  message: AppConstants.emptyCampaignCharactersText,
+                  icon: Icons.person_off_outlined,
+                )
+              else
+                ...campaign.characters.map(
+                  (char) => AppCard(
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const CircleAvatar(
+                        backgroundColor: AppColors.primary,
+                        child: Icon(Icons.shield, color: AppColors.textPrimary),
+                      ),
+                      title: Text(char.name, style: AppTextStyles.titleSmall),
+                      subtitle: Text(
+                        '${char.race} • ${char.rpgClass?.name ?? "Sem classe"} • Nível ${char.level}\nHP: ${char.hpCurrent} • ${AppFormatters.gold(char.gold)}',
+                        style: AppTextStyles.bodySmall,
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.remove_circle_outline,
+                          color: AppColors.error,
+                        ),
+                        tooltip: 'Remover da campanha',
+                        onPressed: () async {
+                          try {
+                            await _campaignService.detachCharacter(
+                              campaign.id,
+                              char.id,
+                            );
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              // Seção de Classes Liberadas pelo Mestre
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Classes Disponibilizadas',
+                    style: AppTextStyles.titleMedium,
+                  ),
+                  IconButton(
+                    tooltip: 'Disponibilizar Classe',
+                    icon: const Icon(
+                      Icons.add_circle,
+                      color: AppColors.secondary,
+                    ),
+                    onPressed: _showAddClassDialog,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              if (campaign.classes.isEmpty)
+                const EmptyStateView(
+                  message: AppConstants.emptyCampaignClassesText,
+                  icon: Icons.lock_outline,
+                )
+              else
+                ...campaign.classes.map(
+                  (rpgClass) => AppCard(
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const CircleAvatar(
+                        backgroundColor: AppColors.secondary,
+                        child: Icon(
+                          Icons.auto_fix_high,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      title: Text(
+                        rpgClass.name,
+                        style: AppTextStyles.titleSmall,
+                      ),
+                      subtitle: Text(
+                        'HP Base: ${rpgClass.hpBase} • Ouro Inicial: ${AppFormatters.gold(rpgClass.goldInitial)}\n${rpgClass.abilities.length} habilidades especiais',
+                        style: AppTextStyles.bodySmall,
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.remove_circle_outline,
+                          color: AppColors.error,
+                        ),
+                        tooltip: 'Revogar classe da campanha',
+                        onPressed: () async {
+                          try {
+                            await _campaignService.detachClass(
+                              campaign.id,
+                              rpgClass.id,
+                            );
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 }

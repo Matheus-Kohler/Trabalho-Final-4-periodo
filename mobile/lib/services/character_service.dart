@@ -1,4 +1,5 @@
 import '../models/character_model.dart';
+import 'app_data_notifier.dart';
 import 'api_client.dart';
 
 class CharacterService {
@@ -23,6 +24,7 @@ class CharacterService {
   ) async {
     final response = await _client.post('/characters', characterData);
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return CharacterModel.fromJson(data);
   }
 
@@ -32,10 +34,12 @@ class CharacterService {
   ) async {
     final response = await _client.put('/characters/$id', characterData);
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return CharacterModel.fromJson(data);
   }
 
   Future<void> deleteCharacter(int id) async {
     await _client.delete('/characters/$id');
+    AppDataNotifier.instance.notifyDataChanged();
   }
 }

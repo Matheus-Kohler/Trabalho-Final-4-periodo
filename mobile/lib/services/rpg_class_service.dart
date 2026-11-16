@@ -1,5 +1,6 @@
 import '../models/class_ability_model.dart';
 import '../models/rpg_class_model.dart';
+import 'app_data_notifier.dart';
 import 'api_client.dart';
 
 class RPGClassService {
@@ -35,6 +36,7 @@ class RPGClassService {
       if (abilities.isNotEmpty) 'abilities': abilities,
     });
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return RPGClassModel.fromJson(data);
   }
 
@@ -52,11 +54,13 @@ class RPGClassService {
       'gold_initial': goldInitial,
     });
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return RPGClassModel.fromJson(data);
   }
 
   Future<void> deleteClass(int id) async {
     await _client.delete('/classes/$id');
+    AppDataNotifier.instance.notifyDataChanged();
   }
 
   Future<ClassAbilityModel> addAbility(
@@ -70,10 +74,12 @@ class RPGClassService {
         'description': description,
     });
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return ClassAbilityModel.fromJson(data);
   }
 
   Future<void> removeAbility(int classId, int abilityId) async {
     await _client.delete('/classes/$classId/abilities/$abilityId');
+    AppDataNotifier.instance.notifyDataChanged();
   }
 }

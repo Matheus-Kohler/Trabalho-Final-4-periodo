@@ -34,6 +34,13 @@ abstract class AppRouter {
         builder: (context, state) => const CampaignFormScreen(),
       ),
       GoRoute(
+        name: AppRoutes.campaignEdit,
+        path: AppRoutes.campaignEditPath,
+        builder: (context, state) => CampaignFormScreen(
+          campaignId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
         name: AppRoutes.campaignDetail,
         path: AppRoutes.campaignDetailPath,
         builder: (context, state) {
@@ -48,9 +55,22 @@ abstract class AppRouter {
         builder: (context, state) => const CharacterFormScreen(),
       ),
       GoRoute(
+        name: AppRoutes.characterEdit,
+        path: AppRoutes.characterEditPath,
+        builder: (context, state) => CharacterFormScreen(
+          characterId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
         name: AppRoutes.classForm,
         path: AppRoutes.classFormPath,
         builder: (context, state) => const ClassFormScreen(),
+      ),
+      GoRoute(
+        name: AppRoutes.classEdit,
+        path: AppRoutes.classEditPath,
+        builder: (context, state) =>
+            ClassFormScreen(classId: int.parse(state.pathParameters['id']!)),
       ),
       GoRoute(
         name: AppRoutes.invitations,

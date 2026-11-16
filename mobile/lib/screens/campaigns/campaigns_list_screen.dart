@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../models/campaign_model.dart';
+import '../../services/app_data_notifier.dart';
 import '../../services/campaign_service.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/empty_state_view.dart';
@@ -28,21 +29,29 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
   String? _errorMessage;
   List<CampaignModel> _masterCampaigns = [];
   List<CampaignModel> _playerCampaigns = [];
+  int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    AppDataNotifier.instance.addListener(_handleDataChanged);
+    _loadCampaigns();
+  }
+
+  void _handleDataChanged() {
     _loadCampaigns();
   }
 
   @override
   void dispose() {
+    AppDataNotifier.instance.removeListener(_handleDataChanged);
     _tabController.dispose();
     super.dispose();
   }
 
   Future<void> _loadCampaigns() async {
+    final generation = ++_loadGeneration;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -52,7 +61,7 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
       final master = await _campaignService.getMasterCampaigns();
       final player = await _campaignService.getParticipatingCampaigns();
 
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _masterCampaigns = master;
           _playerCampaigns = player;
@@ -60,7 +69,7 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _errorMessage = e.toString();
           _isLoading = false;
@@ -82,13 +91,61 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
         statusColor = AppColors.textMuted;
     }
 
+    Future<void> deleteCampaign() async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Excluir campanha'),
+          content: Text('Deseja excluir "${campaign.name}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(
+                'Excluir',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.error,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+
+      try {
+        await _campaignService.deleteCampaign(campaign.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Campanha excluída com sucesso.')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(e.toString())));
+        }
+      }
+    }
+
+    Future<void> editCampaign() async {
+      await context.pushNamed(
+        AppRoutes.campaignEdit,
+        pathParameters: {'id': campaign.id.toString()},
+      );
+    }
+
     return AppCard(
       onTap: () async {
         await context.pushNamed(
           AppRoutes.campaignDetail,
           pathParameters: {'id': campaign.id.toString()},
         );
-        _loadCampaigns();
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,6 +217,35 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
                 style: AppTextStyles.bodySmall,
               ),
               const Spacer(),
+              if (isMaster)
+                PopupMenuButton<String>(
+                  tooltip: 'Ações da campanha',
+                  onSelected: (action) {
+                    if (action == 'edit') editCampaign();
+                    if (action == 'delete') deleteCampaign();
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: ListTile(
+                        leading: Icon(Icons.edit_outlined),
+                        title: Text('Editar'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.delete_outline,
+                          color: AppColors.error,
+                        ),
+                        title: Text('Excluir'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
               const Icon(Icons.chevron_right, color: AppColors.textSecondary),
             ],
           ),
@@ -199,15 +285,17 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
                                 physics: const AlwaysScrollableScrollPhysics(),
                                 children: [
                                   SizedBox(
-                                    height: MediaQuery.of(context).size.height * 0.6,
+                                    height:
+                                        MediaQuery.of(context).size.height *
+                                        0.6,
                                     child: EmptyStateView(
                                       message: AppConstants.emptyCampaignsText,
-                                      actionLabel: 'Criar Minha Primeira Campanha',
+                                      actionLabel:
+                                          'Criar Minha Primeira Campanha',
                                       onAction: () async {
                                         await context.pushNamed(
                                           AppRoutes.campaignForm,
                                         );
-                                        _loadCampaigns();
                                       },
                                     ),
                                   ),
@@ -233,9 +321,12 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
                                 physics: const AlwaysScrollableScrollPhysics(),
                                 children: [
                                   SizedBox(
-                                    height: MediaQuery.of(context).size.height * 0.6,
+                                    height:
+                                        MediaQuery.of(context).size.height *
+                                        0.6,
                                     child: const EmptyStateView(
-                                      message: AppConstants.emptyPlayerCampaignsText,
+                                      message:
+                                          AppConstants.emptyPlayerCampaignsText,
                                       icon: Icons.group_off_outlined,
                                     ),
                                   ),
@@ -265,7 +356,6 @@ class _CampaignsListScreenState extends State<CampaignsListScreen>
         label: const Text('Nova Campanha'),
         onPressed: () async {
           await context.pushNamed(AppRoutes.campaignForm);
-          _loadCampaigns();
         },
       ),
     );

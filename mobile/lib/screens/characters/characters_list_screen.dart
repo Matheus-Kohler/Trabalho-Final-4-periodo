@@ -7,6 +7,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/formatters.dart';
 import '../../models/character_model.dart';
+import '../../services/app_data_notifier.dart';
 import '../../services/character_service.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/empty_state_view.dart';
@@ -26,14 +27,27 @@ class _CharactersListScreenState extends State<CharactersListScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   List<CharacterModel> _characters = [];
+  int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    AppDataNotifier.instance.addListener(_handleDataChanged);
     _loadCharacters();
   }
 
+  void _handleDataChanged() {
+    _loadCharacters();
+  }
+
+  @override
+  void dispose() {
+    AppDataNotifier.instance.removeListener(_handleDataChanged);
+    super.dispose();
+  }
+
   Future<void> _loadCharacters() async {
+    final generation = ++_loadGeneration;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -41,14 +55,14 @@ class _CharactersListScreenState extends State<CharactersListScreen> {
 
     try {
       final characters = await _characterService.getCharacters();
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _characters = characters;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _errorMessage = e.toString();
           _isLoading = false;
@@ -84,7 +98,6 @@ class _CharactersListScreenState extends State<CharactersListScreen> {
     if (confirm == true) {
       try {
         await _characterService.deleteCharacter(id);
-        _loadCharacters();
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(
@@ -118,7 +131,6 @@ class _CharactersListScreenState extends State<CharactersListScreen> {
                       actionLabel: 'Criar Meu Primeiro Herói',
                       onAction: () async {
                         await context.pushNamed(AppRoutes.characterForm);
-                        _loadCharacters();
                       },
                     ),
                   ),
@@ -162,6 +174,17 @@ class _CharactersListScreenState extends State<CharactersListScreen> {
                               ),
                             ),
                             IconButton(
+                              tooltip: 'Editar personagem',
+                              icon: const Icon(Icons.edit_outlined),
+                              onPressed: () async {
+                                await context.pushNamed(
+                                  AppRoutes.characterEdit,
+                                  pathParameters: {'id': char.id.toString()},
+                                );
+                              },
+                            ),
+                            IconButton(
+                              tooltip: 'Excluir personagem',
                               icon: const Icon(
                                 Icons.delete_outline,
                                 color: AppColors.error,
@@ -230,7 +253,6 @@ class _CharactersListScreenState extends State<CharactersListScreen> {
         label: const Text('Novo Herói'),
         onPressed: () async {
           await context.pushNamed(AppRoutes.characterForm);
-          _loadCharacters();
         },
       ),
     );

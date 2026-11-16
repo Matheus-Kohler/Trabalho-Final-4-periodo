@@ -7,6 +7,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/formatters.dart';
 import '../../models/rpg_class_model.dart';
+import '../../services/app_data_notifier.dart';
 import '../../services/rpg_class_service.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/empty_state_view.dart';
@@ -26,14 +27,27 @@ class _ClassesListScreenState extends State<ClassesListScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   List<RPGClassModel> _classes = [];
+  int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    AppDataNotifier.instance.addListener(_handleDataChanged);
     _loadClasses();
   }
 
+  void _handleDataChanged() {
+    _loadClasses();
+  }
+
+  @override
+  void dispose() {
+    AppDataNotifier.instance.removeListener(_handleDataChanged);
+    super.dispose();
+  }
+
   Future<void> _loadClasses() async {
+    final generation = ++_loadGeneration;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -41,14 +55,14 @@ class _ClassesListScreenState extends State<ClassesListScreen> {
 
     try {
       final classes = await _classService.getClasses();
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _classes = classes;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _errorMessage = e.toString();
           _isLoading = false;
@@ -84,7 +98,6 @@ class _ClassesListScreenState extends State<ClassesListScreen> {
     if (confirm == true) {
       try {
         await _classService.deleteClass(id);
-        _loadClasses();
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(
@@ -118,7 +131,6 @@ class _ClassesListScreenState extends State<ClassesListScreen> {
                       actionLabel: 'Criar Classe Personalizada',
                       onAction: () async {
                         await context.pushNamed(AppRoutes.classForm);
-                        _loadClasses();
                       },
                     ),
                   ),
@@ -160,6 +172,19 @@ class _ClassesListScreenState extends State<ClassesListScreen> {
                               ),
                             ),
                             IconButton(
+                              tooltip: 'Editar classe',
+                              icon: const Icon(Icons.edit_outlined),
+                              onPressed: () async {
+                                await context.pushNamed(
+                                  AppRoutes.classEdit,
+                                  pathParameters: {
+                                    'id': rpgClass.id.toString(),
+                                  },
+                                );
+                              },
+                            ),
+                            IconButton(
+                              tooltip: 'Excluir classe',
                               icon: const Icon(
                                 Icons.delete_outline,
                                 color: AppColors.error,
@@ -213,7 +238,6 @@ class _ClassesListScreenState extends State<ClassesListScreen> {
         label: const Text('Nova Classe'),
         onPressed: () async {
           await context.pushNamed(AppRoutes.classForm);
-          _loadClasses();
         },
       ),
     );

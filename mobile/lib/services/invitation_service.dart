@@ -1,5 +1,6 @@
 import '../models/campaign_invitation_model.dart';
 import '../models/character_model.dart';
+import 'app_data_notifier.dart';
 import 'api_client.dart';
 
 class InvitationService {
@@ -27,11 +28,11 @@ class InvitationService {
     int campaignId,
     int characterId,
   ) async {
-    final response = await _client.post(
-      '/campaigns/$campaignId/invitations',
-      {'character_id': characterId},
-    );
+    final response = await _client.post('/campaigns/$campaignId/invitations', {
+      'character_id': characterId,
+    });
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return CampaignInvitationModel.fromJson(data);
   }
 
@@ -40,17 +41,22 @@ class InvitationService {
     final response = await _client.get('/invitations/pending');
     final data = response['data'] as List? ?? [];
     return data
-        .map((item) => CampaignInvitationModel.fromJson(item as Map<String, dynamic>))
+        .map(
+          (item) =>
+              CampaignInvitationModel.fromJson(item as Map<String, dynamic>),
+        )
         .toList();
   }
 
   /// O jogador aceita o convite para a campanha.
   Future<void> acceptInvitation(int invitationId) async {
     await _client.post('/invitations/$invitationId/accept', {});
+    AppDataNotifier.instance.notifyDataChanged();
   }
 
   /// O jogador recusa o convite para a campanha.
   Future<void> rejectInvitation(int invitationId) async {
     await _client.post('/invitations/$invitationId/reject', {});
+    AppDataNotifier.instance.notifyDataChanged();
   }
 }

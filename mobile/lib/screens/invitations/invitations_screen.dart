@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../models/campaign_invitation_model.dart';
+import '../../services/app_data_notifier.dart';
 import '../../services/invitation_service.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/empty_state_view.dart';
@@ -23,14 +24,27 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   List<CampaignInvitationModel> _invitations = [];
+  int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    AppDataNotifier.instance.addListener(_handleDataChanged);
     _loadInvitations();
   }
 
+  void _handleDataChanged() {
+    _loadInvitations();
+  }
+
+  @override
+  void dispose() {
+    AppDataNotifier.instance.removeListener(_handleDataChanged);
+    super.dispose();
+  }
+
   Future<void> _loadInvitations() async {
+    final generation = ++_loadGeneration;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -38,14 +52,14 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
 
     try {
       final invitations = await _invitationService.getPendingInvitations();
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _invitations = invitations;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _errorMessage = e.toString();
           _isLoading = false;
@@ -71,13 +85,12 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
             ),
           ),
         );
-        _loadInvitations();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
@@ -108,10 +121,7 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     }
 
     if (_errorMessage != null) {
-      return ErrorView(
-        message: _errorMessage!,
-        onRetry: _loadInvitations,
-      );
+      return ErrorView(message: _errorMessage!, onRetry: _loadInvitations);
     }
 
     if (_invitations.isEmpty) {
@@ -135,9 +145,11 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
       itemCount: _invitations.length,
       itemBuilder: (context, index) {
         final inv = _invitations[index];
-        final campaignName = inv.campaign?.name ?? 'Campanha #${inv.campaignId}';
+        final campaignName =
+            inv.campaign?.name ?? 'Campanha #${inv.campaignId}';
         final masterName = inv.campaign?.master?.name ?? 'Mestre';
-        final charName = inv.character?.name ?? 'Personagem #${inv.characterId}';
+        final charName =
+            inv.character?.name ?? 'Personagem #${inv.characterId}';
 
         return AppCard(
           child: Column(
@@ -154,10 +166,7 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          campaignName,
-                          style: AppTextStyles.titleMedium,
-                        ),
+                        Text(campaignName, style: AppTextStyles.titleMedium),
                         Text(
                           'Mestre: $masterName',
                           style: AppTextStyles.bodySmall,
@@ -180,10 +189,16 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   OutlinedButton.icon(
-                    icon: const Icon(Icons.close, size: 16, color: AppColors.error),
+                    icon: const Icon(
+                      Icons.close,
+                      size: 16,
+                      color: AppColors.error,
+                    ),
                     label: Text(
                       'Recusar',
-                      style: AppTextStyles.labelMedium.copyWith(color: AppColors.error),
+                      style: AppTextStyles.labelMedium.copyWith(
+                        color: AppColors.error,
+                      ),
                     ),
                     onPressed: () => _respond(inv.id, false),
                   ),

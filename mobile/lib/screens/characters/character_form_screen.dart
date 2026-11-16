@@ -4,15 +4,20 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/validators.dart';
+import '../../models/character_model.dart';
 import '../../models/rpg_class_model.dart';
 import '../../services/character_service.dart';
 import '../../services/rpg_class_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_text_field.dart';
+import '../../widgets/error_view.dart';
+import '../../widgets/loading_indicator.dart';
 
 class CharacterFormScreen extends StatefulWidget {
-  const CharacterFormScreen({super.key});
+  final int? characterId;
+
+  const CharacterFormScreen({super.key, this.characterId});
 
   @override
   State<CharacterFormScreen> createState() => _CharacterFormScreenState();
@@ -40,12 +45,14 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
   int? _selectedClassId;
   List<RPGClassModel> _classes = [];
   bool _isLoading = false;
+  bool _isLoadingInitialData = false;
   String? _errorMessage;
+  String? _initialDataError;
 
   @override
   void initState() {
     super.initState();
-    _loadClasses();
+    _loadInitialData();
   }
 
   @override
@@ -66,19 +73,66 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
     super.dispose();
   }
 
-  Future<void> _loadClasses() async {
+  Future<void> _loadInitialData() async {
+    setState(() {
+      _isLoadingInitialData = true;
+      _initialDataError = null;
+    });
+
     try {
       final classes = await _classService.getClasses();
+      CharacterModel? character;
+      if (widget.characterId != null) {
+        character = await _characterService.getCharacter(widget.characterId!);
+      }
+
       if (mounted) {
         setState(() {
-          _classes = classes;
-          if (classes.isNotEmpty) {
+          if (character != null) {
+            final currentClass = character.rpgClass;
+            if (currentClass != null &&
+                !classes.any((item) => item.id == currentClass.id)) {
+              classes.add(currentClass);
+            }
+            _classes = classes;
+            _populateForm(character);
+          } else {
+            _classes = classes;
+          }
+          if (character == null && classes.isNotEmpty) {
             _selectedClassId = classes.first.id;
             _applyClassDefaults(classes.first);
           }
+          _isLoadingInitialData = false;
         });
       }
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _initialDataError = e.toString();
+          _isLoadingInitialData = false;
+        });
+      }
+    }
+  }
+
+  void _populateForm(CharacterModel character) {
+    _nameController.text = character.name;
+    _raceController.text = character.race;
+    _levelController.text = character.level.toString();
+    _hpController.text = character.hpCurrent.toString();
+    _strengthController.text = character.strength.toString();
+    _dexterityController.text = character.dexterity.toString();
+    _constitutionController.text = character.constitution.toString();
+    _intelligenceController.text = character.intelligence.toString();
+    _wisdomController.text = character.wisdom.toString();
+    _charismaController.text = character.charisma.toString();
+    _goldController.text = character.gold.toStringAsFixed(2);
+    _historyController.text = character.history ?? '';
+    _descriptionController.text = character.description ?? '';
+    _selectedClassId = _classes.any((item) => item.id == character.rpgClassId)
+        ? character.rpgClassId
+        : null;
   }
 
   void _applyClassDefaults(RPGClassModel rpgClass) {
@@ -113,7 +167,11 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
         'description': _descriptionController.text.trim(),
       };
 
-      await _characterService.createCharacter(data);
+      if (widget.characterId == null) {
+        await _characterService.createCharacter(data);
+      } else {
+        await _characterService.updateCharacter(widget.characterId!, data);
+      }
       if (mounted) {
         context.pop();
       }
@@ -132,8 +190,31 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.characterId != null;
+    final formTitle = isEditing
+        ? 'Editar Ficha de Herói'
+        : 'Criar Nova Ficha de Herói';
+
+    if (_isLoadingInitialData) {
+      return Scaffold(
+        appBar: AppBar(title: Text(formTitle)),
+        body: LoadingIndicator(
+          message: isEditing
+              ? 'Carregando personagem...'
+              : 'Carregando classes...',
+        ),
+      );
+    }
+
+    if (_initialDataError != null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(formTitle)),
+        body: ErrorView(message: _initialDataError!, onRetry: _loadInitialData),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Criar Nova Ficha de Herói')),
+      appBar: AppBar(title: Text(formTitle)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: AppCard(
@@ -326,7 +407,9 @@ class _CharacterFormScreenState extends State<CharacterFormScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 AppButton(
-                  label: 'Salvar Ficha de Herói',
+                  label: isEditing
+                      ? 'Atualizar Ficha'
+                      : 'Salvar Ficha de Herói',
                   icon: Icons.shield,
                   isLoading: _isLoading,
                   onPressed: _handleSave,

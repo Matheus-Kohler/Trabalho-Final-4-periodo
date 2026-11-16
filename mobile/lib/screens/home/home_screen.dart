@@ -55,7 +55,9 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (_) {}
   }
 
-  Future<void> _showMandatoryInvitationDialog(CampaignInvitationModel inv) async {
+  Future<void> _showMandatoryInvitationDialog(
+    CampaignInvitationModel inv,
+  ) async {
     final campaignName = inv.campaign?.name ?? 'Campanha #${inv.campaignId}';
     final charName = inv.character?.name ?? 'seu personagem';
     final masterName = inv.campaign?.master?.name ?? 'O mestre';
@@ -109,7 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: AppSpacing.md),
             Text(
               'Você deve decidir se aceita entrar na aventura agora para prosseguir:',
-              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -126,9 +130,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString())),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(e.toString())));
                 }
               }
             },
@@ -147,9 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
               try {
                 await _invitationService.acceptInvitation(inv.id);
                 if (mounted) {
-                  setState(() {
-                    _refreshKey++;
-                  });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
@@ -160,9 +161,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString())),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(e.toString())));
                 }
               }
             },
@@ -219,9 +220,6 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.mail_outline),
             onPressed: () async {
               await context.pushNamed(AppRoutes.invitations);
-              setState(() {
-                _refreshKey++;
-              });
               _checkPendingInvitations();
             },
           ),

@@ -1,4 +1,5 @@
 import '../models/campaign_model.dart';
+import 'app_data_notifier.dart';
 import 'api_client.dart';
 
 class CampaignService {
@@ -40,6 +41,7 @@ class CampaignService {
       'status': status,
     });
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return CampaignModel.fromJson(data);
   }
 
@@ -55,11 +57,13 @@ class CampaignService {
       'status': status,
     });
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return CampaignModel.fromJson(data);
   }
 
   Future<void> deleteCampaign(int id) async {
     await _client.delete('/campaigns/$id');
+    AppDataNotifier.instance.notifyDataChanged();
   }
 
   Future<CampaignModel> attachCharacter(int campaignId, int characterId) async {
@@ -67,6 +71,7 @@ class CampaignService {
       'character_id': characterId,
     });
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return CampaignModel.fromJson(data);
   }
 
@@ -75,6 +80,7 @@ class CampaignService {
       '/campaigns/$campaignId/characters/$characterId',
     );
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return CampaignModel.fromJson(data);
   }
 
@@ -83,6 +89,7 @@ class CampaignService {
       'rpg_class_id': classId,
     });
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return CampaignModel.fromJson(data);
   }
 
@@ -91,6 +98,7 @@ class CampaignService {
       '/campaigns/$campaignId/classes/$classId',
     );
     final data = response['data'] as Map<String, dynamic>;
+    AppDataNotifier.instance.notifyDataChanged();
     return CampaignModel.fromJson(data);
   }
 }
