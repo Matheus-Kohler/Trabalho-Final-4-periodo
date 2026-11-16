@@ -170,4 +170,48 @@ class ResourceCrudTest extends TestCase
         $this->deleteJson("/api/classes/{$rpgClass->id}")
             ->assertForbidden();
     }
+
+    public function test_player_can_accept_an_invitation_to_a_new_campaign(): void
+    {
+        $master = User::factory()->create();
+        $player = User::factory()->create();
+        $campaign = Campaign::create([
+            'user_id' => $master->id,
+            'name' => 'Campanha para convite',
+            'status' => 'ativa',
+        ]);
+        $character = Character::create([
+            'user_id' => $player->id,
+            'name' => 'Personagem convidado',
+            'race' => 'Elfo',
+        ]);
+
+        Sanctum::actingAs($master);
+        $this->getJson(
+            "/api/campaigns/{$campaign->id}/invitations/available-characters?email={$player->email}"
+        )->assertOk()
+            ->assertJsonPath('data.0.id', $character->id);
+
+        $invitation = $this->postJson(
+            "/api/campaigns/{$campaign->id}/invitations",
+            ['character_id' => $character->id]
+        )->assertCreated()
+            ->assertJsonPath('data.status', 'pendente');
+
+        $invitationId = $invitation->json('data.id');
+
+        Sanctum::actingAs($player);
+        $this->getJson('/api/invitations/pending')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $invitationId);
+
+        $this->postJson("/api/invitations/{$invitationId}/accept")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'aceito');
+
+        $this->assertDatabaseHas('campaign_character', [
+            'campaign_id' => $campaign->id,
+            'character_id' => $character->id,
+        ]);
+    }
 }

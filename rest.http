@@ -258,7 +258,7 @@ DELETE {{baseUrl}}/campaigns/{{campaignId}}/classes/1
 Accept: {{contentType}}
 Authorization: Bearer {{token}}
 
-### 4.10 Remover campanha
+### 4.10 Remover campanha (PULAR AQUI; executar ao terminar a seção 5)
 DELETE {{baseUrl}}/campaigns/{{campaignId}}
 Accept: {{contentType}}
 Authorization: Bearer {{token}}
@@ -269,13 +269,13 @@ Authorization: Bearer {{token}}
 ### ============================================================================
 
 ### 5.1 Mestre busca personagens disponíveis para convidar para a campanha
-GET {{baseUrl}}/campaigns/1/invitations/available-characters
+GET {{baseUrl}}/campaigns/{{campaignId}}/invitations/available-characters?email=jogador@rpgmanager.com
 Accept: {{contentType}}
 Authorization: Bearer {{token}}
 
 ### 5.2 Mestre envia convite para um personagem de outro jogador
 # @name sendInvite
-POST {{baseUrl}}/campaigns/1/invitations
+POST {{baseUrl}}/campaigns/{{campaignId}}/invitations
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 Authorization: Bearer {{token}}
@@ -304,13 +304,21 @@ Accept: {{contentType}}
 Authorization: Bearer {{playerToken}}
 
 ### 5.5 Jogador aceita o convite (adiciona o personagem automaticamente na campanha)
-POST {{baseUrl}}/invitations/1/accept
+POST {{baseUrl}}/invitations/{{sendInvite.response.body.data.id}}/accept
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 Authorization: Bearer {{playerToken}}
 
+### 5.5.1 Mestre verifica a campanha após o jogador aceitar
+GET {{baseUrl}}/campaigns/{{campaignId}}
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Limpeza final: volte à chamada 4.10 e execute-a agora, como mestre.
+
 ### 5.6 (Alternativa) Jogador recusa o convite
-# POST {{baseUrl}}/invitations/1/reject
+# Execute esta chamada no lugar de 5.5, não depois de aceitar.
+# POST {{baseUrl}}/invitations/{{sendInvite.response.body.data.id}}/reject
 # Content-Type: {{contentType}}
 # Accept: {{contentType}}
 # Authorization: Bearer {{playerToken}}
